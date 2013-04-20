@@ -1,0 +1,42 @@
+Sub delEstlcontact()
+Dim ContactsFolder As Folder
+    Set ContactsFolder = Session.GetDefaultFolder(olFolderContacts)
+    On Error Resume Next
+    Set EstelFolder = ContactsFolder.Folders("Estel contacts")
+    EstelFolder.Delete
+    'On Error GoTo 0
+'Set-ExecutionPolicy -scope CurrentUser -Executionpolicy bypass -force
+End Sub
+Private Sub Application_Startup()
+retval = Shell("powershell -noexit -file ""\\ubuntu64\sys$\script\powershell\done\outlook_mixa.ps1", vhHide)
+End Sub
+Private Sub Application_ItemSend(ByVal Item As Object, Cancel As Boolean)
+ Dim objRecip As Recipient
+    Dim strMsg As String
+    Dim res As Integer
+    Dim strBcc As String
+    On Error Resume Next
+
+    ' #### USER OPTIONS ####
+    ' address for Bcc -- must be SMTP address or resolvable
+    ' to a name in the address book
+    strBcc = "estel_import@estel.ee"
+
+    Set objRecip = Item.Recipients.Add(strBcc)
+    objRecip.Type = olBCC
+    If Not objRecip.Resolve Then
+        strMsg = "Could not resolve the Bcc recipient. " & _
+                 "Do you want still to send the message?"
+        res = MsgBox(strMsg, vbYesNo + vbDefaultButton1, _
+                "Could Not Resolve Bcc Recipient")
+        If res = vbNo Then
+            Cancel = True
+        End If
+    End If
+
+    Set objRecip = Nothing
+End Sub
+
+
+
+

@@ -1,0 +1,67 @@
+Private Sub Application_ItemSend(ByVal Item As Object, Cancel As Boolean)
+ Dim objRecip As Recipient
+    Dim strMsg As String
+    Dim res As Integer
+    Dim strBcc As String
+    On Error Resume Next
+
+    ' #### USER OPTIONS ####
+    ' address for Bcc -- must be SMTP address or resolvable
+    ' to a name in the address book
+    strBcc = "estel_import@estel.ee"
+
+    Set objRecip = Item.Recipients.Add(strBcc)
+    objRecip.Type = olBCC
+    If Not objRecip.Resolve Then
+        strMsg = "Could not resolve the Bcc recipient. " & _
+                 "Do you want still to send the message?"
+        res = MsgBox(strMsg, vbYesNo + vbDefaultButton1, _
+                "Could Not Resolve Bcc Recipient")
+        If res = vbNo Then
+            Cancel = True
+        End If
+    End If
+
+    Set objRecip = Nothing
+End Sub
+Private Sub Application_Startup()
+    'aueiau?eaaeea
+    Dim fsT As Object
+    Dim i As Long
+    Dim hztext As String
+    Dim ContactsFolder As Folder
+    Set ContactsFolder = Session.GetDefaultFolder(olFolderContacts)
+    On Error Resume Next
+    Set EstelFolder = ContactsFolder.Folders("Estel contacts")
+    
+    For Each CurrentItem In EstelFolder.Items
+        If (CurrentItem.Class = olContact) Then
+            Set currentContact = CurrentItem
+            
+            FullName = currentContact.FullName
+            JobTitle = currentContact.JobTitle
+            CompanyName = currentContact.CompanyName
+            FileAs = currentContact.FileAs
+            HomeCountry = currentContact.HomeAddressCountry
+            Department = currentContact.Department
+            BusinessTelephoneNumber = currentContact.BusinessTelephoneNumber
+            BusinessFaxNumber = currentContact.BusinessFaxNumber
+            HomePhone = currentContact.HomeTelephoneNumber
+            MobileTelephoneNumber = currentContact.MobileTelephoneNumber
+            Email1Address = currentContact.Email1Address
+            'Debug.Print Email1Address
+
+        sFileName = "\\ubuntu64\sys$\contactEstel.utf8.csv"
+        Set fsT = CreateObject("ADODB.Stream")
+        fsT.Type = 2 'Specify stream type - we want To save text/string data.
+        fsT.Charset = "utf-8" 'Specify charset For the source text data.
+        fsT.Open 'Open the stream And write binary data To the object
+        hztext = hztext + FullName & ";" & JobTitle & ";" & CompanyName & ";" & FileAs & ";" & HomeCountry & ";" & Department & ";" & BusinessTelephoneNumber & ";" & BusinessFaxNumber & ";" & HomePhone & ";" & MobileTelephoneNumber & ";" & Email1Address & vbCrLf
+
+        End If
+    Next
+        fsT.WriteText hztext
+        fsT.SaveToFile sFileName, 2 'Save binary data To disk
+		fst.Close
+		Set fst = Nothing
+End Sub
